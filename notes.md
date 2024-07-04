@@ -1,0 +1,1 @@
+-- au niveau de la compilation complete, il y a un warning a enlever dans le mlx : mlx_new_image.c:27:5: warning:
