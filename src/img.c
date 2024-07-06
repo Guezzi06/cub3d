@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 12:02:36 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/03 20:39:26 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/04 16:19:21 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,18 @@ void	init_img(t_data *data)
 	data->img.wall.mlx_img = mlx_new_image(data->mlx, data->pos.width - 1, data->pos.height - 1);
 	data->img.wall.addr = mlx_get_data_addr(data->img.wall.mlx_img, &data->img.wall.bpp, &data->img.wall.line_len, &data->img.wall.endian);
 	render_background(data, &data->img.wall, 0xFFFFFF);
+	data->img.sol.mlx_img = mlx_new_image(data->mlx, data->pos.width, data->pos.height);
+	data->img.sol.addr = mlx_get_data_addr(data->img.sol.mlx_img, &data->img.sol.bpp, &data->img.sol.line_len, &data->img.sol.endian);
+	render_background(data, &data->img.sol, 0x444444);
 	data->img.player.mlx_img = mlx_new_image(data->mlx, 10, 10);
 	data->img.player.addr = mlx_get_data_addr(data->img.player.mlx_img, &data->img.player.bpp, &data->img.player.line_len, &data->img.player.endian);
 	render_background(data, &data->img.player, 0xFF0000);
 	data->img.air.mlx_img = mlx_new_image(data->mlx, 10, 10);
 	data->img.air.addr = mlx_get_data_addr(data->img.air.mlx_img, &data->img.air.bpp, &data->img.air.line_len, &data->img.air.endian);
 	render_background(data, &data->img.air, 0x444444);
+	data->img.ray_cam.mlx_img = mlx_new_image(data->mlx, 2, 2);
+	data->img.ray_cam.addr = mlx_get_data_addr(data->img.ray_cam.mlx_img, &data->img.ray_cam.bpp, &data->img.ray_cam.line_len, &data->img.ray_cam.endian);
+	render_background(data, &data->img.ray_cam, 0xCCCC00);
 }
 
 void	render_ofback(t_texture *img, int color)

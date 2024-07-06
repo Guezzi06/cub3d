@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 10:38:48 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/03 16:58:52 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/04 16:10:56 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ int	press_key(int key, t_data *data)
 		x += 5;
 	else if (key == XK_s)
 		y += 5;
+	else if (key == XK_Left || key == XK_Right)
+		modify_rot(data, key);
 	else
 		return (0);
 	if (walled(data, x, y))  // plus tard, on pourrait avancer un petit peu si jamais on est pas vraiment colle au mur, de la valeur egale a la distance par rapport au mur
@@ -37,11 +39,23 @@ int	press_key(int key, t_data *data)
 	return (0);
 }
 
+void	modify_rot(t_data *data, int key)
+{
+	if (key == XK_Left)
+		data->pos.rot += ROT_SPEED;
+	else
+		data->pos.rot -= ROT_SPEED;
+	data->pos.dirX = cos(data->pos.rot);
+	data->pos.dirY = -sin(data->pos.rot);
+}
+
 int	walled(t_data *data, int x, int y)
 {
 	int		wall;
 	
 	wall = 0;
+	if (x == 0 && y == 0)
+		return (0);
 	if (x >= 0 && y >= 0)
 		wall = check_up_left_wall(data, x, y);
 	else if (x >= 0 && y <= 0)

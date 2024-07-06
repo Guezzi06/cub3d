@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 08:03:07 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 11:45:01 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/04 16:29:01 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 # include "../minilibx-linux/mlx_int.h"
 
 # define PI 3.14159265
+# define ROT_SPEED 0.1
 
 typedef struct s_pos
 {
@@ -33,6 +34,8 @@ typedef struct s_pos
 	double				width;
 	double				posx;
 	double				posy;
+	double				real_x;
+	double				real_y;
 	double				dirX;
 	double				dirY;
 	double				rot;
@@ -54,9 +57,11 @@ typedef struct s_texture
 typedef struct s_imgs
 {
 	struct s_texture	wall;
+	struct s_texture	sol;
 	struct s_texture	player;
 	struct s_texture	air;
 	struct s_texture	back;
+	struct s_texture	ray_cam;
 	char				*n_wall;
 	char				*e_wall;
 	char				*s_wall;
@@ -87,7 +92,7 @@ typedef struct s_data
 //MAIN
 int		init_arg(t_data *data, char *file);
 void	init_data(t_data *data);
-//void	init_dir(t_data *data, char content);
+void	init_dir(t_data *data, char content);
 void	init_game(t_data *data);
 
 //WALL
@@ -133,6 +138,10 @@ int		check_up_right_wall(t_data *data, int x, int y);
 int		check_down_right_wall(t_data *data, int x, int y);
 //int		*moove_up(t_data *data, int x, int y);
 //int		*moove_down(t_data *data, int x, int y);
+
+//RAYONS
+void	put_ray_cam(t_data *data);
+void	modify_rot(t_data *data, int key);
 
 //FREE
 int		free_all(t_data *data);

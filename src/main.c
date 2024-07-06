@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 08:14:35 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 12:01:08 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/04 15:43:54 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void	init_data(t_data *data)
 		if (tmp->content == 'N' || tmp->content == 'S'
 			|| tmp->content == 'E' || tmp->content == 'W')
 		{
-			//init_dir(data, tmp->content);
+			init_dir(data, tmp->content);
 			data->pos.posx = tmp->x;  // correspond a l'index de la colonne commencant par 0
 			data->pos.posy = tmp->y;  // correspond a l'index de la ligne commencant par 0
 		}
@@ -85,27 +85,27 @@ void	init_dir(t_data *data, char content)
 {
 	if (content == 'N')
 	{
-		data->pos.dirX = 0.0;
-		data->pos.dirY = 1.0;
 		data->pos.rot = PI / 2;
+		data->pos.dirX = cos(data->pos.rot);
+		data->pos.dirY = -sin(data->pos.rot);
 	}
 	else if (content == 'S')
 	{
-		data->pos.dirX = 0.0;
-		data->pos.dirY = -1.0;
 		data->pos.rot = -PI / 2;
+		data->pos.dirX = cos(data->pos.rot);
+		data->pos.dirY = -sin(data->pos.rot);
 	}
 	else if (content == 'E')
 	{
-		data->pos.dirX = 1.0;
-		data->pos.dirY = 0.0;
 		data->pos.rot = 0.0;
+		data->pos.dirX = cos(data->pos.rot);
+		data->pos.dirY = -sin(data->pos.rot);
 	}
 	else if (content == 'W')
 	{
-		data->pos.dirX = -1.0;
-		data->pos.dirY = 0.0;
 		data->pos.rot = PI;
+		data->pos.dirX = cos(data->pos.rot);
+		data->pos.dirY = -sin(data->pos.rot);
 	}
 }
 
