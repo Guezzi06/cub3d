@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 08:03:07 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 16:29:01 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/09 16:03:01 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 # include "../minilibx-linux/mlx_int.h"
 
 # define PI 3.14159265
-# define ROT_SPEED 0.1
+# define ROT_SPEED 0.20
 
 typedef struct s_pos
 {
@@ -34,8 +34,8 @@ typedef struct s_pos
 	double				width;
 	double				posx;
 	double				posy;
-	double				real_x;
-	double				real_y;
+	//double				real_x;
+	//double				real_y;
 	double				dirX;
 	double				dirY;
 	double				rot;
@@ -62,6 +62,7 @@ typedef struct s_imgs
 	struct s_texture	air;
 	struct s_texture	back;
 	struct s_texture	ray_cam;
+	struct s_texture	rayon;
 	char				*n_wall;
 	char				*e_wall;
 	char				*s_wall;
@@ -84,6 +85,10 @@ typedef struct s_data
 	void				*mlx;
 	void				*mlx_win;
 	int					parse_status;
+	double				x;
+	double				y;
+	double				*len_rayons;  // tableau de longueur de chaque rayon jusqu'au premier mur qu'il rencontre
+	int					**tab_walls;  // tableau de tableau des coordonnes de chaque mur, va servir pour verifier l'intersection du 1er mur avec l'equation de la droite du rayon
 	struct s_pos		pos;
 	struct s_imgs		img;
 	struct s_map		*map;
@@ -126,7 +131,7 @@ void	img_pix_put(t_texture *img, int x, int y, int color);
 
 //DRAW
 int		first_draw(t_data *data);
-int		draw(t_data *data, int x, int y);
+int		draw(t_data *data, double x, double y);
 void	print_square(t_data *data, int x, int y, int color);
 
 //KEY
@@ -136,12 +141,24 @@ int		check_up_left_wall(t_data *data, int x, int y);
 int		check_down_left_wall(t_data *data, int x, int y);
 int		check_up_right_wall(t_data *data, int x, int y);
 int		check_down_right_wall(t_data *data, int x, int y);
-//int		*moove_up(t_data *data, int x, int y);
-//int		*moove_down(t_data *data, int x, int y);
+
+//MOVES
+void	move_w(t_data *data);
+void	move_a(t_data *data);
+void	move_d(t_data *data);
+void	move_s(t_data *data);
 
 //RAYONS
 void	put_ray_cam(t_data *data);
 void	modify_rot(t_data *data, int key);
+void	put_rayons(t_data *data);
+void	trace_rayon(t_data *data, double dirX, double dirY, int j);
+void	create_tab_walls(t_data *data);
+void	fill_tab_walls(t_data *data);
+void	calcul_len_rayons(t_data *data);
+double	len_collision(t_data *data, double dirX, double dirY);
+int		wall_here(t_data *data, int x, int y);
+//void	affich_tab_walls(t_data *data);  // pour debbuger
 
 //FREE
 int		free_all(t_data *data);

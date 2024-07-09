@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 08:14:35 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 15:43:54 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/07 18:45:24 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,26 @@ int	main(int argc, char **argv)
 
 int	init_arg(t_data *data, char *file)
 {
+	int	i;
+
 	data->img.n_wall = NULL;
 	data->img.e_wall = NULL;
 	data->img.s_wall = NULL;
 	data->img.w_wall = NULL;
 	data->img.c_wall = NULL;
 	data->img.f_wall = NULL;
+	data->len_rayons = malloc(sizeof(double) * 70);
+	if (!data->len_rayons)
+		exit (1);
+	i = 0;
+	while (i < 70)
+	{
+		data->len_rayons[i] = -1;
+		i++;
+	}
 	if (init_walls(data, file))
 		return (1);
 	init_map(data, file);
-	//print_map(data->map);
 	init_data(data);
 	return (0);
 }
@@ -109,8 +119,84 @@ void	init_dir(t_data *data, char content)
 	}
 }
 
+void	create_tab_walls(t_data *data)
+{
+	t_map	*tmp;
+	int		count;
+	int		y;
+
+	tmp = data->map;
+	data->tab_walls = malloc(sizeof(int*) * (data->pos.ymax + 1));
+	count = 0;
+	y = 0;
+	if (!data->tab_walls)
+		exit (1);
+	while (tmp)
+	{
+		if (y != tmp->y || !tmp->next)  // on passe a la ligne suivante si le y augmente de 1 OU si on est arrive a la fin de la liste
+		{
+			data->tab_walls[y] = malloc(sizeof(int) * (count + 1));  // on alloue le nombre de murs pour cette ligne
+			if (!data->tab_walls[y])
+				exit (1);
+			count = 0;
+			y++;
+		}
+		if (tmp->content == '1')
+			count++;
+		tmp = tmp->next;
+	}
+	data->tab_walls[y] = NULL;
+}
+
+void	fill_tab_walls(t_data *data)
+{
+	t_map	*tmp;
+	int		i;
+	int		y;
+	
+	tmp = data->map;
+	i = 0;
+	y = 0;
+	while (tmp)
+	{
+		if (y != tmp->y || !tmp->next)
+		{
+			data->tab_walls[y][i] = -1;
+			y++;
+			i = 0;
+		}
+		if (tmp->content == '1' && tmp->next)
+		{
+			data->tab_walls[tmp->y][i] = tmp->x;
+			i++;
+		}
+		tmp = tmp->next;
+	}
+}
+
+/*void	affich_tab_walls(t_data *data)
+{
+	int	y;
+	int	i;
+	
+	y = 0;
+	while (data->tab_walls[y])
+	{
+		i = 0;
+		while (data->tab_walls[y][i] != -1)
+		{
+			printf("%d  |  ", data->tab_walls[y][i]);
+			i++;
+		}
+		y++;
+	}
+}*/
+
 void	init_game(t_data *data)
 {
+	create_tab_walls(data);
+	fill_tab_walls(data);  // tableau de coordonnees de chacun de mes murs
+	//affich_tab_walls(data);
 	data->mlx_win = mlx_new_window(data->mlx, data->pos.width * data->pos.xmax, data->pos.height * data->pos.ymax, "cube3D");
 	first_draw(data);
 	mlx_hook(data->mlx_win, KeyPress, KeyPressMask, &press_key, data);

@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 10:38:48 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 16:10:56 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/09 17:31:57 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,28 +14,233 @@
 
 int	press_key(int key, t_data *data)
 {
-	int	x;
-	int	y;
-
-	x = 0;
-	y = 0;
+	data->x = 0;
+	data->y = 0;
 	if (key == XK_Escape)
 		free_all(data);
-	else if (key == XK_w)
-		y -= 5;
+	else if (key == XK_w)  // mettre les bonnes valeurs de x et y en fonction de la direction du joueur
+		move_w(data);
 	else if (key == XK_a)
-		x -= 5;
+		move_a(data);
 	else if (key == XK_d)
-		x += 5;
+		move_d(data);
 	else if (key == XK_s)
-		y += 5;
+		move_s(data);
 	else if (key == XK_Left || key == XK_Right)
 		modify_rot(data, key);
 	else
 		return (0);
-	if (walled(data, x, y))  // plus tard, on pourrait avancer un petit peu si jamais on est pas vraiment colle au mur, de la valeur egale a la distance par rapport au mur
+	if (walled(data, (int)data->x, (int)data->y))  // plus tard, on pourrait avancer un petit peu si jamais on est pas vraiment colle au mur, de la valeur egale a la distance par rapport au mur
 		return (0);
-	draw(data, x, y);
+	calcul_len_rayons(data);
+	draw(data, data->x, data->y);
+	return (0);
+}
+
+void	calcul_len_rayons(t_data *data)
+{
+	double	degre_ref;
+	double	delta;
+	double	my_dirX;
+	double	my_dirY;
+	int		i;
+
+	degre_ref = -PI / 6;
+	delta = (PI / 3) / 60;  // ici delta correspond a 1 degre
+	i = 0;
+	while (degre_ref <= PI / 6)
+	{
+		my_dirX = cos(data->pos.rot + degre_ref);
+		my_dirY = -sin(data->pos.rot + degre_ref);
+		data->len_rayons[i] = len_collision(data, my_dirX, my_dirY);
+		degre_ref += delta;
+		i++;
+	}
+	data->len_rayons[i] = -1;
+	int	j = 0;
+	int	k = 0;
+	while (data->len_rayons[j] != -1)
+	{
+		printf("%f -- ", data->len_rayons[j]);
+		j++;
+		k++;
+		if (k == 10)
+		{
+			printf("\n");
+			k = 0;
+		}
+	}
+	printf("\n   ---  \n");
+}
+
+double	len_collision(t_data *data, double dirX, double dirY)
+{
+	/* position de depart : x = data->pos.posx + 4
+							y = data->pos.posy + 4
+		pente = dirY / dirX en regle generale
+		si dirX > 0 , le rayon va vers la droite donc on augmente sur x
+		si dirX < 0 , le rayon va vers la gauche donc on diminue sur x
+	*/
+	double	len_rayon;
+	double	pente;
+	double	x;
+	double	y;
+	int		xref;  // x actuel qui parcourt la droite du rayon
+	int		yref;  // y actuel qui parcourt la droite du rayon
+	int		i;  // va permettre de decaler d'une colonne a chaque incrementation jusqu'a croiser un mur si il y en a un
+
+	xref = (int)((data->pos.posx + 4) / data->pos.width);
+	yref = (int)((data->pos.posy + 4) / data->pos.height);
+	len_rayon = 100000;
+	if (dirX > 0)
+	{
+		pente = dirY / dirX;
+		printf("pente = %f -- dirX = %f -- dirY = %f\n", pente, dirX, dirY);
+		i = 1;
+		while (1)
+		{
+			y = ((xref + i * data->pos.width) - (data->pos.posx + 4)) * pente;  // y correspond a la valeur en ordonnee (- position du joueur) ou il y a intersection de la droite du rayon avec l'abscisse exacte xref + i * width
+			y += (data->pos.posy + 4);
+			if (y > 0 && (int)y / data->pos.height < data->pos.ymax && xref + i < data->pos.xmax)  // on verifie si ce y est bien compris entre 0 et ymax
+			{
+				if (wall_here(data, xref + i, (int)(y / data->pos.height)))  // -> mur cote West (WE)
+				{
+					//printf("x_wall = %d  --  y_wall = %d\n", xref + i, (int)(y / data->pos.height));
+					len_rayon = sqrt(pow((y - (data->pos.posy + 4)), 2) + pow((xref + i * data->pos.width) - (data->pos.posx + 4), 2));
+					break;
+				}
+			}
+			else  // cas ou je suis sorti de la map (peut se produire quand la pente est trop inclinee [correspond a un rayon quasi vertical])
+				break;
+			i++;
+		}
+		/*i = 1;
+		if (dirY > 0)  // on est entre 0 et -PI / 2
+		{
+			while (1)
+			{
+				if (pente < 0)
+					x = ((yref + i * data->pos.height) - (data->pos.posy + 4)) / (-pente);
+				else
+					x = ((yref + i * data->pos.height) - (data->pos.posy + 4)) / (pente);
+				x += (data->pos.posx + 4);
+				if (x > 0 && (int)x / data->pos.width < data->pos.xmax && yref + i < data->pos.ymax)
+				{
+					if (wall_here(data, (int)x / data->pos.width, yref + i))  // -> mur cote Nord (NO)
+					{
+						if (sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref + i * data->pos.height) - (data->pos.posy + 4), 2)) < len_rayon)
+							len_rayon = sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref + i * data->pos.height) - (data->pos.posy + 4), 2));
+						break;
+					}
+				}
+				else
+					break;
+				i++;
+			}
+		}
+		else if (dirY < 0)  // on est entre 0 et +PI / 2
+		{
+			while (1)
+			{
+				if (pente < 0)
+					x = ((yref - i * data->pos.height) - (data->pos.posy + 4)) / (-pente);
+				else
+					x = ((yref - i * data->pos.height) - (data->pos.posy + 4)) / (pente);
+				x += (data->pos.posx + 4);
+				if (x > 0 && (int)x / data->pos.width < data->pos.xmax && yref - i >= 0)
+				{
+					if (wall_here(data, (int)x / data->pos.width, yref - i))  // -> mur cote Sud (SO)
+					{
+						if (sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref - i * data->pos.height) - (data->pos.posy + 4), 2)) < len_rayon)
+							len_rayon = sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref - i * data->pos.height) - (data->pos.posy + 4), 2));
+						break;
+					}
+				}
+				else
+					break;
+				i++;
+			}
+		}*/
+	}
+	else if (dirX < 0)
+	{
+		pente = dirY / dirX;
+		i = 0;
+		while (1)
+		{
+			y = ((xref - i * data->pos.width) - (data->pos.posx + 4)) * pente;
+			y += (data->pos.posy + 4);
+			if (y > 0 && (int)y / data->pos.height < data->pos.ymax && xref + i < data->pos.xmax)
+			{
+				if (wall_here(data, xref + i, (int)y / data->pos.height))  // -> mur cote Est (EA)
+				{
+					len_rayon = sqrt(pow((y - (data->pos.posy + 4)), 2) + pow((xref - i * data->pos.width) - (data->pos.posx + 4), 2));
+					break;
+				}
+			}
+			else
+				break;
+			i++;
+		}
+		i = 1;
+		if (dirY > 0)  // on est entre 0 et -PI / 2
+		{
+			while (1)
+			{
+				x = ((yref + i * data->pos.height) - (data->pos.posy + 4)) / pente;
+				x += (data->pos.posx + 4);
+				if (x > 0 && (int)x / data->pos.width < data->pos.xmax && yref + i < data->pos.ymax)
+				{
+					if (wall_here(data, (int)x / data->pos.width, yref + i))  // -> mur cote Nord (NO)
+					{
+						if (sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref + i * data->pos.height) - (data->pos.posy + 4), 2)) < len_rayon)
+							len_rayon = sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref + i * data->pos.height) - (data->pos.posy + 4), 2));
+						break;
+					}
+				}
+				else
+					break;
+				i++;
+			}
+		}
+		else if (dirY < 0)  // on est entre 0 et +PI / 2
+		{
+			while (1)
+			{
+				x = ((yref - i * data->pos.height) - (data->pos.posy + 4)) / pente;
+				x += (data->pos.posx + 4);
+				if (x > 0 && (int)x / data->pos.width < data->pos.xmax && yref - i >= 0)
+				{
+					if (wall_here(data, (int)x / data->pos.width, yref - i))  // -> mur cote Sud (SO)
+					{
+						if (sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref - i * data->pos.height) - (data->pos.posy + 4), 2)) < len_rayon)
+							len_rayon = sqrt(pow((x - (data->pos.posx + 4)), 2) + pow((yref - i * data->pos.height) - (data->pos.posy + 4), 2));
+						break;
+					}
+				}
+				else
+					break;
+				i++;
+			}
+		}
+	}
+	else
+		len_rayon = 50;
+	// dernier cas particulier ou dirX = 0
+	return (len_rayon);
+}
+
+int	wall_here(t_data *data, int x, int y)
+{
+	int	xref;
+
+	xref = 0;
+	while (data->tab_walls[y][xref] != -1)
+	{
+		if (data->tab_walls[y][xref] == x)
+			return (1);
+		xref++;
+	}
 	return (0);
 }
 
@@ -206,87 +411,3 @@ int	check_down_right_wall(t_data *data, int x, int y)
 	}
 	return (0);
 }
-
-/*int	*moove_up(t_data *data, int x, int y)
-{
-	int	*pos;
-
-	pos = malloc(sizeof(int) * 8);
-	if (!pos)
-		return (NULL);
-	if (((data->pos.moovex + x) % data->pos.width) != 0)
-	{
-		//printf("moove up 1\n");
-		pos[0] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[2] = pos[0] + 1;
-		pos[4] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[6] = pos[4] + 1;;
-	}
-	else
-	{
-		//printf("moove up 2\n");
-		pos[0] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[2] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[4] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[6] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-	}
-	if (((data->pos.moovey + y) % data->pos.height) != 0)
-	{
-		//printf("moove up 3\n");
-		pos[1] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[3] = pos[1] + 1;
-		pos[5] = pos[1] + 1;
-		pos[7] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-	}
-	else
-	{
-		//printf("moove up 4\n");
-		pos[1] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[3] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[5] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[7] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-	}
-	return (pos);
-}
-
-int	*moove_down(t_data *data, int x, int y)
-{
-	int	*pos;
-
-	pos = malloc(sizeof(int) * 8);
-	if (!pos)
-		return (NULL);
-	if (((data->pos.moovex + x) % data->pos.width) != 0)
-	{
-		//printf("moove down 1\n");
-		pos[0] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[2] = pos[0] + 1;
-		pos[4] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[6] = pos[4] + 1;
-	}
-	else
-	{
-		//printf("moove down 2\n");
-		pos[0] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[2] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[4] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-		pos[6] = (((data->pos.moovex + x) + (data->pos.posx * data->pos.width)) / data->pos.width);
-	}
-	if (((data->pos.moovey + y) % data->pos.height) != 0)
-	{
-		//printf("moove down 3\n");
-		pos[1] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[3] = pos[1] + 1;
-		pos[5] = pos[1] + 1;
-		pos[7] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-	}
-	else
-	{
-		//printf("moove down 4\n");
-		pos[1] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[3] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[5] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-		pos[7] = (((data->pos.moovey + y) + (data->pos.posy * data->pos.height)) / data->pos.height);
-	}
-	return (pos);
-}*/

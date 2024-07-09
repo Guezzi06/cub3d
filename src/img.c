@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 12:02:36 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/04 16:19:21 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/06 16:05:46 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,9 @@ void	init_img(t_data *data)
 	data->img.ray_cam.mlx_img = mlx_new_image(data->mlx, 2, 2);
 	data->img.ray_cam.addr = mlx_get_data_addr(data->img.ray_cam.mlx_img, &data->img.ray_cam.bpp, &data->img.ray_cam.line_len, &data->img.ray_cam.endian);
 	render_background(data, &data->img.ray_cam, 0xCCCC00);
+	data->img.rayon.mlx_img = mlx_new_image(data->mlx, 1, 1);
+	data->img.rayon.addr = mlx_get_data_addr(data->img.rayon.mlx_img, &data->img.rayon.bpp, &data->img.rayon.line_len, &data->img.rayon.endian);
+	render_background(data, &data->img.rayon, 0xFFA500);
 }
 
 void	render_ofback(t_texture *img, int color)
