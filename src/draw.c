@@ -6,7 +6,7 @@
 /*   By: aguezzi <aguezzi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/01 10:41:19 by mgayout           #+#    #+#             */
-/*   Updated: 2024/07/09 18:10:57 by aguezzi          ###   ########.fr       */
+/*   Updated: 2024/07/12 16:10:45 by aguezzi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,10 @@ int	first_draw(t_data *data)
 	data->pos.posy = data->pos.posy * data->pos.height + (data->pos.height / 2) - 5;
 	mlx_put_image_to_window(data->mlx, data->mlx_win, data->img.player.mlx_img,
 								(int)data->pos.posx, (int)data->pos.posy);
-	calcul_len_rayons(data);
-	put_rayons(data);
-	put_ray_cam(data);
+	calcul_len_rayons(data);  // cette fonction a garder absolument, permet de calculer laa longueur de chaque rayon jusqu'au prochain mur
+	put_rayons(data);  // ENLEVER CETTE FONCTION D'AFFICHAGE DES RAYONS QUI SERVAIT POUR DEBUGGAGE
+	put_ray_cam(data);  // ENLEVER CETTE FONCTION D'AFFICHAGE DU RAYON CAM QUI SERVAIT POUR DEBUGGAGE AUSSI
+	// le tableau data->len_rayons contient toutes les longueurs des rayons en commencant par 30radians a droite de la direction joueur
 	
 	return (0);
 }
@@ -154,8 +155,10 @@ int	draw(t_data *data, double x, double y)
 	data->pos.posy += y;
 	mlx_put_image_to_window(data->mlx, data->mlx_win, data->img.player.mlx_img,
 					(int)data->pos.posx, (int)data->pos.posy);
-	put_rayons(data);
-	put_ray_cam(data);
+	calcul_len_rayons(data);  // cette fonction a garder absolument, permet de calculer laa longueur de chaque rayon jusqu'au prochain mur
+	put_rayons(data);  // ENLEVER CETTE FONCTION D'AFFICHAGE DES RAYONS QUI SERVAIT POUR DEBUGGAGE
+	put_ray_cam(data);  // ENLEVER CETTE FONCTION D'AFFICHAGE DU RAYON CAM QUI SERVAIT POUR DEBUGGAGE AUSSI
+	// le tableau data->len_rayons contient toutes les longueurs des rayons en commencant par 30radians a droite de la direction joueur
 	return (0);
 }
 
